@@ -45,14 +45,14 @@ spring:
       datasource:
         master:
           name: ruoyi-vue-pro
-          url: jdbc:mysql://120.27.236.68:3306/${spring.datasource.dynamic.datasource.master.name}?useSSL=false&serverTimezone=CTT&allowPublicKeyRetrieval=true
-          driver-class-name: com.mysql.jdbc.Driver
+          url: jdbc:mysql://120.27.236.68:3306/${spring.datasource.dynamic.datasource.master.name}?allowPublicKeyRetrieval=true
+          driver-class-name: com.mysql.cj.jdbc.Driver
           username: root
           password: lijunhao123456
         slave: # 模拟从库，可根据自己需要修改 # 模拟从库，可根据自己需要修改
           name: ruoyi-vue-pro
-          url: jdbc:mysql://120.27.236.68:3306/${spring.datasource.dynamic.datasource.slave.name}?useSSL=false&serverTimezone=CTT&allowPublicKeyRetrieval=true
-          driver-class-name: com.mysql.jdbc.Driver
+          url: jdbc:mysql://120.27.236.68:3306/${spring.datasource.dynamic.datasource.slave.name}?allowPublicKeyRetrieval=true
+          driver-class-name: com.mysql.cj.jdbc.Driver
           username: root
           password: lijunhao123456
 
