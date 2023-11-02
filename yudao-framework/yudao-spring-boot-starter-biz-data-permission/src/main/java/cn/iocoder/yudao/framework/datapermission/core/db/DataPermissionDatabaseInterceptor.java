@@ -17,6 +17,7 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExistsExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.select.*;
@@ -131,8 +132,11 @@ public class DataPermissionDatabaseInterceptor extends JsqlParserSupport impleme
         if (selectBody == null) {
             return;
         }
+        // 普通查询语句
         if (selectBody instanceof PlainSelect) {
             processPlainSelect((PlainSelect) selectBody);
+        // With语句 MySQL 8.0版本开始支持
+        // withItem.getSubSelect().getSelectBody() 中获取到查询语句主体
         } else if (selectBody instanceof WithItem) {
             WithItem withItem = (WithItem) selectBody;
             processSelectBody(withItem.getSubSelect().getSelectBody());
@@ -150,6 +154,7 @@ public class DataPermissionDatabaseInterceptor extends JsqlParserSupport impleme
      */
     protected void processPlainSelect(PlainSelect plainSelect) {
         //#3087 github
+        // 处理 查询的字段 集合
         List<SelectItem> selectItems = plainSelect.getSelectItems();
         if (CollectionUtils.isNotEmpty(selectItems)) {
             selectItems.forEach(this::processSelectItem);
@@ -160,6 +165,7 @@ public class DataPermissionDatabaseInterceptor extends JsqlParserSupport impleme
         processWhereSubSelect(where);
 
         // 处理 fromItem
+        // 查询的 表列表
         FromItem fromItem = plainSelect.getFromItem();
         List<Table> list = processFromItem(fromItem);
         List<Table> mainTables = new ArrayList<>(list);
@@ -223,6 +229,7 @@ public class DataPermissionDatabaseInterceptor extends JsqlParserSupport impleme
             return;
         }
         if (where instanceof FromItem) {
+            // where 存在查询
             processOtherFromItem((FromItem) where);
             return;
         }
@@ -259,8 +266,10 @@ public class DataPermissionDatabaseInterceptor extends JsqlParserSupport impleme
         if (selectItem instanceof SelectExpressionItem) {
             SelectExpressionItem selectExpressionItem = (SelectExpressionItem) selectItem;
             if (selectExpressionItem.getExpression() instanceof SubSelect) {
+                // 处理子查询
                 processSelectBody(((SubSelect) selectExpressionItem.getExpression()).getSelectBody());
             } else if (selectExpressionItem.getExpression() instanceof Function) {
+                // 处理函数
                 processFunction((Function) selectExpressionItem.getExpression());
             }
         }

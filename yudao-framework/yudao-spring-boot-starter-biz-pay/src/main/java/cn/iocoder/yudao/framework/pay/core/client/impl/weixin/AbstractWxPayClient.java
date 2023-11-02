@@ -141,11 +141,17 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
      */
     protected WxPayUnifiedOrderV3Request buildPayUnifiedOrderRequestV3(PayOrderUnifiedReqDTO reqDTO) {
         WxPayUnifiedOrderV3Request request = new WxPayUnifiedOrderV3Request();
+        // 商户订单号，在一个商户下订单号必须是唯一的
         request.setOutTradeNo(reqDTO.getOutTradeNo());
+        // 商品描述，比如：qq会员、qq公仔
         request.setDescription(reqDTO.getSubject());
+        // 订单金额
         request.setAmount(new WxPayUnifiedOrderV3Request.Amount().setTotal(reqDTO.getPrice())); // 单位分
+        // 订单过期时间
         request.setTimeExpire(formatDateV3(reqDTO.getExpireTime()));
+        // 场景信息，可选
         request.setSceneInfo(new WxPayUnifiedOrderV3Request.SceneInfo().setPayerClientIp(reqDTO.getUserIp()));
+        // 回调地址
         request.setNotifyUrl(reqDTO.getNotifyUrl());
         return request;
     }
@@ -174,10 +180,11 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
     }
 
     private PayOrderRespDTO doParseOrderNotifyV3(String body) throws WxPayException {
-        // 1. 解析回调
+        // 1. 解析回调 包含源数据和解密后的数据
         WxPayOrderNotifyV3Result response = client.parseOrderNotifyV3Result(body, null);
+        // 获取解密后的数据
         WxPayOrderNotifyV3Result.DecryptNotifyResult result = response.getResult();
-        // 2. 构建结果
+        // 2. 构建结果，拿到交易状态，是否支付成功
         Integer status = parseStatus(result.getTradeState());
         String openid = result.getPayer() != null ? result.getPayer().getOpenid() : null;
         return PayOrderRespDTO.of(status, result.getTransactionId(), openid, parseDateV3(result.getSuccessTime()),
@@ -294,13 +301,18 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
     private PayRefundRespDTO doUnifiedRefundV3(PayRefundUnifiedReqDTO reqDTO) throws Throwable {
         // 1. 构建 WxPayRefundRequest 请求
         WxPayRefundV3Request request = new WxPayRefundV3Request()
+                // 商户订单号
                 .setOutTradeNo(reqDTO.getOutTradeNo())
+                // 商户退款单号
                 .setOutRefundNo(reqDTO.getOutRefundNo())
+                // 金额信息：退款金额、总金额、退款币种
                 .setAmount(new WxPayRefundV3Request.Amount().setRefund(reqDTO.getRefundPrice())
                         .setTotal(reqDTO.getPayPrice()).setCurrency("CNY"))
+                // 退款原因
                 .setReason(reqDTO.getReason())
+                // 回调地址
                 .setNotifyUrl(reqDTO.getNotifyUrl());
-        // 2.1 执行请求
+        // 2.1 执行请求，进行退款
         WxPayRefundV3Result response = client.refundV3(request);
         // 2.2 创建返回结果
         if (Objects.equals("SUCCESS", response.getStatus())) {

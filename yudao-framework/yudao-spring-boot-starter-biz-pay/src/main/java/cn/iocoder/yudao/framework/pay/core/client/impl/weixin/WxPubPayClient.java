@@ -58,8 +58,12 @@ public class WxPubPayClient extends AbstractWxPayClient {
     protected PayOrderRespDTO doUnifiedOrderV3(PayOrderUnifiedReqDTO reqDTO) throws WxPayException {
         // 构建 WxPayUnifiedOrderRequest 对象
         WxPayUnifiedOrderV3Request request = buildPayUnifiedOrderRequestV3(reqDTO)
+                // 支付者，只需一个参数（openId）
                 .setPayer(new WxPayUnifiedOrderV3Request.Payer().setOpenid(getOpenid(reqDTO)));
-        // 执行请求
+        // 执行统一下单请求
+        // 这里会先调用下单接口获取到 prepay_id，然后调用 “小程序调起支付”接口完成支付
+        // 1. 调用 https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_1.shtml
+        // 2. 调用 https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_5_4.shtml
         WxPayUnifiedOrderV3Result.JsapiResult response = client.createOrderV3(TradeTypeEnum.JSAPI, request);
 
         // 转换结果
