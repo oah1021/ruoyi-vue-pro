@@ -149,10 +149,14 @@ public class YudaoWebSecurityConfigurerAdapter {
     }
 
     private Multimap<HttpMethod, String> getPermitAllUrlsFromAnnotations() {
+        // 定义一个集合用来创建 HttpMethod对应的url，这是一对多的集合，且value不重复
+        // com.google.guava:guava:32.1.2-jre -》com.google.common.collect
         Multimap<HttpMethod, String> result = HashMultimap.create();
         // 获得接口对应的 HandlerMethod 集合
         RequestMappingHandlerMapping requestMappingHandlerMapping = (RequestMappingHandlerMapping)
                 applicationContext.getBean("requestMappingHandlerMapping");
+        // key ：请求映射信息 如：{GET [/admin-api/infra/codegen/preview]}
+        // value ：封装有关由方法和 Bean 组成的处理程序方法的信息。提供对方法参数、方法返回值、方法注释等的便捷访问。
         Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = requestMappingHandlerMapping.getHandlerMethods();
         // 获得有 @PermitAll 注解的接口
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethodMap.entrySet()) {
@@ -160,11 +164,13 @@ public class YudaoWebSecurityConfigurerAdapter {
             if (!handlerMethod.hasMethodAnnotation(PermitAll.class)) {
                 continue;
             }
+            // 当没有映射信息时，跳过
             if (entry.getKey().getPatternsCondition() == null) {
                 continue;
             }
+            // 通过 key 来获取url Path
             Set<String> urls = entry.getKey().getPatternsCondition().getPatterns();
-            // 根据请求方法，添加到 result 结果
+            // 通过key RequestMappingInfo获取Methods，根据请求方法，添加到 result 结果
             entry.getKey().getMethodsCondition().getMethods().forEach(requestMethod -> {
                 switch (requestMethod) {
                     case GET:

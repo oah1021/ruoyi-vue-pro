@@ -52,7 +52,10 @@ public class YudaoWebAutoConfiguration implements WebMvcConfigurer {
      * @param api        API 配置
      */
     private void configurePathMatch(PathMatchConfigurer configurer, WebProperties.Api api) {
+        // 使用 AntPathMatcher工具进行路径匹配
         AntPathMatcher antPathMatcher = new AntPathMatcher(".");
+        // clazz.isAnnotationPresent(RestController.class) 表示该元素必须包含RestController 注解，否则返回false
+        // clazz.getPackage().getName() 表示获取该类的包名
         configurer.addPathPrefix(api.getPrefix(), clazz -> clazz.isAnnotationPresent(RestController.class)
                 && antPathMatcher.match(api.getController(), clazz.getPackage().getName())); // 仅仅匹配 controller 包
     }
