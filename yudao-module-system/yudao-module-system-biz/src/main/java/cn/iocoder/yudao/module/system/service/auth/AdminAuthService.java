@@ -70,4 +70,9 @@ public interface AdminAuthService {
      */
     AuthLoginRespVO refreshToken(String refreshToken);
 
+    /**
+     * 测试百万批量插入
+     * @return
+     */
+    String insertBatch();
 }

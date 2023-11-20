@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.system.service.auth;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
@@ -28,11 +29,17 @@ import com.xingyuv.captcha.model.vo.CaptchaVO;
 import com.xingyuv.captcha.service.CaptchaService;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.sql.DataSource;
 import javax.validation.Validator;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -205,6 +212,78 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     public AuthLoginRespVO refreshToken(String refreshToken) {
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.refreshAccessToken(refreshToken, OAuth2ClientConstants.CLIENT_ID_DEFAULT);
         return AuthConvert.INSTANCE.convert(accessTokenDO);
+    }
+
+    @Override
+    public String insertBatch() {
+        DataSource dataSource = SpringUtil.getBean("dataSource", DataSource.class);
+        long begin = 33112001;// 起始id
+        long end = begin + 100000;// 每次循环插入的数据量
+        Connection conn = null;
+        PreparedStatement pstm = null;
+        try {
+            conn = dataSource.getConnection();
+            // 关闭自动提交
+            conn.setAutoCommit(false);
+            // 编写sql
+            String sql = "INSERT INTO test VALUES (?, ?, ?, ?, ?)";
+            // 预编译sql
+            pstm = conn.prepareStatement(sql);
+            // 开始总计时
+            long bTime1 = System.currentTimeMillis();
+            // 循环10次，每次十万数据，一共100万
+            for (int i = 0; i < 10; i++) {
+
+                // 开启分段计时，计1W数据耗时
+                long bTime = System.currentTimeMillis();
+                // 开始循环
+                while (begin < end) {
+                    // 赋值
+                    pstm.setLong(1, begin);
+                    pstm.setString(2, "张" + begin);
+                    pstm.setInt(3, 0);
+                    pstm.setInt(4, 18);
+                    pstm.setString(5, "17530411021");
+                    // 添加到同一个批处理中
+                    pstm.addBatch();
+                    begin++;
+                }
+                // 执行批处理
+                pstm.executeBatch();
+                // 提交事务
+                conn.commit();
+                // 边界值自增10W
+                end += 100000;
+                // 关闭分段计时
+                long eTime = System.currentTimeMillis();
+                // 输出
+                System.out.println("成功插入10W条数据耗时：" + (eTime - bTime));
+            }
+            // 关闭总计时
+            long eTime1 = System.currentTimeMillis();
+            // 输出
+            System.out.println("插入100W数据共耗时：" + (eTime1 - bTime1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (null != pstm) {
+                try {
+                    pstm.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (null != conn) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return "添加完成";
     }
 
     @Override

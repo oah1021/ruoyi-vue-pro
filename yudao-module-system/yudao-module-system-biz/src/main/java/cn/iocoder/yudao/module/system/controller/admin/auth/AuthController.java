@@ -154,4 +154,10 @@ public class AuthController {
         return success(authService.socialLogin(reqVO));
     }
 
+    @PostMapping("/insertBatch")
+    @PermitAll
+    public CommonResult<String> insertBatch() {
+        return success(authService.insertBatch());
+    }
+
 }
