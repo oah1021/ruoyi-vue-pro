@@ -1,8 +1,7 @@
-package ${basePackage}.module.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo;
+package ${basePackage}.controller.${table.businessName}.vo;
 
 import lombok.*;
 import java.util.*;
-import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.*;
 ## 处理 Date 字段的引入
 #foreach ($column in $columns)
@@ -15,16 +14,14 @@ import static ${DateUtilsClassName}.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 #end
 #end
 
-@Schema(description = "${sceneEnum.name} - ${table.classComment}创建 Request VO")
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class ${sceneEnum.prefixClass}${table.className}CreateReqVO extends ${sceneEnum.prefixClass}${table.className}BaseVO {
+public class ${sceneEnum.prefixClass}${table.className}CreateReqVO {
 
 #foreach ($column in $columns)
-#if (${column.createOperation} && (!${column.updateOperation} || !${column.listOperationResult}))##不是通用字段
+#if (${column.createOperation})##不是通用字段
     #parse("codegen/java/controller/vo/_column.vm")
 
 #end
+
 #end
 }

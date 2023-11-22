@@ -1,6 +1,5 @@
-package ${basePackage}.module.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo;
+package ${basePackage}.controller.${table.businessName}.vo;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.util.*;
 import javax.validation.constraints.*;
@@ -15,11 +14,8 @@ import static ${DateUtilsClassName}.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 #end
 #end
 
-@Schema(description = "${sceneEnum.name} - ${table.classComment}更新 Request VO")
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class ${sceneEnum.prefixClass}${table.className}UpdateReqVO extends ${sceneEnum.prefixClass}${table.className}BaseVO {
+public class ${sceneEnum.prefixClass}${table.className}UpdateReqVO {
 
 #foreach ($column in $columns)
 #if (${column.updateOperation} && (!${column.createOperation} || !${column.listOperationResult}))##不是通用字段

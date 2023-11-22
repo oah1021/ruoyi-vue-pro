@@ -1,5 +1,7 @@
 ## 提供给 baseVO、createVO、updateVO 生成字段
-    @Schema(description = "${column.columnComment}"#if (!${column.nullable}), requiredMode = Schema.RequiredMode.REQUIRED#end#if ("$!column.example" != ""), example = "${column.example}"#end)
+    /**
+    * ${column.columnComment}
+    */
 #if (!${column.nullable})## 判断 @NotEmpty 和 @NotNull 注解
 #if (${field.fieldType} == 'String')
     @NotEmpty(message = "${column.columnComment}不能为空")
@@ -8,6 +10,6 @@
 #end
 #end
 #if (${column.javaType} == "LocalDateTime")## 时间类型
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 #end
     private ${column.javaType} ${column.javaField};

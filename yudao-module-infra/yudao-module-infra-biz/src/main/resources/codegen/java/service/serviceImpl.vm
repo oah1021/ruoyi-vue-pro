@@ -1,22 +1,53 @@
-package ${basePackage}.module.${table.moduleName}.service.${table.businessName};
+package ${basePackage}.service.${table.businessName};
 
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
-import ${basePackage}.module.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo.*;
-import ${basePackage}.module.${table.moduleName}.dal.dataobject.${table.businessName}.${table.className}DO;
+import ${basePackage}IPage.controller.${table.businessName}.vo.*;
+import ${basePackage}IPage.dal.dataobject.${table.businessName}.${table.className}DO;
 import ${PageResultClassName};
 
-import ${basePackage}.module.${table.moduleName}.convert.${table.businessName}.${table.className}Convert;
-import ${basePackage}.module.${table.moduleName}.dal.mysql.${table.businessName}.${table.className}Mapper;
+import ${basePackage}IPage.convert.${table.businessName}.${table.className}Convert;
+import ${basePackage}IPage.dal.mysql.${table.businessName}.${table.className}Mapper;
 
-import static ${ServiceExceptionUtilClassName}.exception;
-import static ${basePackage}.module.${table.moduleName}.enums.ErrorCodeConstants.*;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+
+## 字段模板
+#macro(listCondition)
+    #foreach ($column in $columns)
+        #if (${column.listOperation})
+            #set ($JavaField = $column.javaField.substring(0,1).toUpperCase() + ${column.javaField.substring(1)})##首字母大写
+            #if (${column.listOperationCondition} == "=")##情况一，= 的时候
+            .eq(#if (${column.javaType} != "Integer")StrUtil.isNotBlank(pageReqVO.get${JavaField})#end #if (${column.javaType} == "Integer")ObjectUtil.isNotNull(pageReqVO.get${JavaField})#end, ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+            #if (${column.listOperationCondition} == "!=")##情况二，!= 的时候
+            .ne(#if (${column.javaType} == "String")StrUtil.isNotBlank(pageReqVO.get${JavaField})#end #if (${column.javaType} == "Integer")ObjectUtil.isNotNull(pageReqVO.get${JavaField})#end, ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+            #if (${column.listOperationCondition} == ">")##情况三，> 的时候
+            .gt(#if (${column.javaType} == "String")StrUtil.isNotBlank(pageReqVO.get${JavaField})#end #if (${column.javaType} == "Integer")ObjectUtil.isNotNull(pageReqVO.get${JavaField})#end, ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+            #if (${column.listOperationCondition} == ">=")##情况四，>= 的时候
+            .ge(#if (${column.javaType} == "String")StrUtil.isNotBlank(pageReqVO.get${JavaField})#end #if (${column.javaType} == "Integer")ObjectUtil.isNotNull(pageReqVO.get${JavaField})#end, ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+            #if (${column.listOperationCondition} == "<")##情况五，< 的时候
+            .lt(#if (${column.javaType} == "String")StrUtil.isNotBlank(pageReqVO.get${JavaField})#end #if (${column.javaType} == "Integer")ObjectUtil.isNotNull(pageReqVO.get${JavaField})#end, ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+            #if (${column.listOperationCondition} == "<=")##情况五，<= 的时候
+            .le(#if (${column.javaType} == "String")StrUtil.isNotBlank(pageReqVO.get${JavaField})#end #if (${column.javaType} == "Integer")ObjectUtil.isNotNull(pageReqVO.get${JavaField})#end, ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+            #if (${column.listOperationCondition} == "LIKE")##情况七，Like 的时候
+            .like(StrUtil.isNotBlank(pageReqVO.get${JavaField}), ${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+            #end
+##            #if (${column.listOperationCondition} == "BETWEEN")##情况八，Between 的时候
+##            .between(${table.className}DO::get${JavaField}, reqVO.get${JavaField}())
+##            #end
+        #end
+    #end
+#end
 
 /**
  * ${table.classComment} Service 实现类
@@ -58,7 +89,7 @@ public class ${table.className}ServiceImpl implements ${table.className}Service 
 
     private void validate${simpleClassName}Exists(${primaryColumn.javaType} id) {
         if (${classNameVar}Mapper.selectById(id) == null) {
-            throw exception(${simpleClassName_underlineCase.toUpperCase()}_NOT_EXISTS);
+            throw new ServiceException("不存在该记录");
         }
     }
 
@@ -67,22 +98,13 @@ public class ${table.className}ServiceImpl implements ${table.className}Service 
         return ${classNameVar}Mapper.selectById(id);
     }
 
-    @Override
-    public List<${table.className}DO> get${simpleClassName}List(Collection<${primaryColumn.javaType}> ids) {
-        if (CollUtil.isEmpty(ids)) {
-            return ListUtil.empty();
-        }
-        return ${classNameVar}Mapper.selectBatchIds(ids);
-    }
 
     @Override
-    public PageResult<${table.className}DO> get${simpleClassName}Page(${sceneEnum.prefixClass}${table.className}PageReqVO pageReqVO) {
-        return ${classNameVar}Mapper.selectPage(pageReqVO);
-    }
-
-    @Override
-    public List<${table.className}DO> get${simpleClassName}List(${sceneEnum.prefixClass}${table.className}ExportReqVO exportReqVO) {
-        return ${classNameVar}Mapper.selectList(exportReqVO);
+    public IPage<${table.className}DO> get${simpleClassName}Page(Page<${table.className}DO> page, ${sceneEnum.prefixClass}${table.className}PageReqVO pageReqVO) {
+        Page<${table.className}DO> page = ${classNameVar}Mapper.selectPage(page, Wrappers.lambdaQuery(${table.className}DO.class)
+                #listCondition()
+                .orderByDesc(${table.className}DO::getUpdateTime));
+        return page;
     }
 
 }

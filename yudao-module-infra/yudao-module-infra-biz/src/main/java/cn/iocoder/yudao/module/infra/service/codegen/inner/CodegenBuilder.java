@@ -36,8 +36,8 @@ public class CodegenBuilder {
     private static final Map<String, CodegenColumnListConditionEnum> COLUMN_LIST_OPERATION_CONDITION_MAPPINGS =
             MapUtil.<String, CodegenColumnListConditionEnum>builder()
                     .put("name", CodegenColumnListConditionEnum.LIKE)
-                    .put("time", CodegenColumnListConditionEnum.BETWEEN)
-                    .put("date", CodegenColumnListConditionEnum.BETWEEN)
+                    // .put("time", CodegenColumnListConditionEnum.BETWEEN)
+                    // .put("date", CodegenColumnListConditionEnum.BETWEEN)
                     .build();
 
     /**

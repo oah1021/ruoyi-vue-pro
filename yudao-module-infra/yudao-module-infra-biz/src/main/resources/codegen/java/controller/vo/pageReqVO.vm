@@ -1,8 +1,7 @@
-package ${basePackage}.module.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo;
+package ${basePackage}.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo;
 
 import lombok.*;
 import java.util.*;
-import io.swagger.v3.oas.annotations.media.Schema;
 import ${PageParamClassName};
 ## 处理 Date 字段的引入
 #foreach ($column in $columns)
@@ -16,21 +15,22 @@ import static ${DateUtilsClassName}.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 #end
 ## 字段模板
 #macro(columnTpl $prefix $prefixStr)
-    @Schema(description = "${prefixStr}${column.columnComment}"#if ("$!column.example" != ""), example = "${column.example}"#end)
+    /**
+    * ${column.columnComment}
+    */
+    #if(${column.javaType} == "LocalDateTime")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    #end
     private ${column.javaType}#if ("$!prefix" != "") ${prefix}${JavaField}#else ${column.javaField}#end;
 #end
 
-@Schema(description = "${sceneEnum.name} - ${table.classComment}分页 Request VO")
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class ${sceneEnum.prefixClass}${table.className}PageReqVO extends PageParam {
+public class ${sceneEnum.prefixClass}${table.className}PageReqVO {
 
 #foreach ($column in $columns)
 #if (${column.listOperation})##查询操作
 #if (${column.listOperationCondition} == "BETWEEN")## 情况一，Between 的时候
-    @Schema(description = "${column.columnComment}"#if ("$!column.example" != ""), example = "${column.example}"#end)
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private ${column.javaType}[] ${column.javaField};
 #else##情况二，非 Between 的时间
     #columnTpl('', '')

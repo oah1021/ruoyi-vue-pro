@@ -16,8 +16,8 @@ public enum CodegenColumnListConditionEnum {
     GTE(">="),
     LT("<"),
     LTE("<="),
-    LIKE("LIKE"),
-    BETWEEN("BETWEEN");
+    LIKE("LIKE");
+    // BETWEEN("BETWEEN");
 
     /**
      * 条件

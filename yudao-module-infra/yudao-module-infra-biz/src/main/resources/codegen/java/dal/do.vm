@@ -3,10 +3,14 @@ package ${basePackage}.module.${table.moduleName}.dal.dataobject.${table.busines
 import lombok.*;
 import java.util.*;
 #foreach ($column in $columns)
-#if (${column.javaType} == "BigDecimal")
+#set($bigDecimalCount = 0)
+#set($localDateTimeCount = 0)
+#if (${column.javaType} == "BigDecimal" && $bigDecimalCount == 0)
+#set($bigDecimalCount = $bigDecimalCount + 1)
 import java.math.BigDecimal;
 #end
-#if (${column.javaType} == "LocalDateTime")
+#if (${column.javaType} == "LocalDateTime" && $localDateTimeCount == 0)
+#set($bigDecimalCount = $bigDecimalCount + 1)
 import java.time.LocalDateTime;
 #end
 #end
@@ -19,17 +23,14 @@ import ${BaseDOClassName};
  * @author ${table.author}
  */
 @TableName("${table.tableName.toLowerCase()}")
-@KeySequence("${table.tableName.toLowerCase()}_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ${table.className}DO extends BaseDO {
+public class ${table.className}DO {
 
 #foreach ($column in $columns)
-#if (!${baseDOFields.contains(${column.javaField})})##排除 BaseDO 的字段
+###if (!${baseDOFields.contains(${column.javaField})})##排除 BaseDO 的字段
     /**
      * ${column.columnComment}
     #if ("$!column.dictType" != "")##处理枚举值
@@ -40,8 +41,11 @@ public class ${table.className}DO extends BaseDO {
     #if (${column.primaryKey})##处理主键
     @TableId#if (${column.javaType} == 'String')(type = IdType.INPUT)#end
     #end
+    #if (${column.javaField.equals("isDeleted")})##处理主键
+    @TableLogic
+    #end
     private ${column.javaType} ${column.javaField};
-#end
+###end
 #end
 
 }

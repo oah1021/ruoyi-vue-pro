@@ -1,6 +1,5 @@
-package ${basePackage}.module.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo;
+package ${basePackage}.controller.${table.businessName}.vo;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 #foreach ($column in $columns)
 #if (${column.javaType} == "LocalDateTime")
@@ -9,16 +8,23 @@ import java.time.LocalDateTime;
 #end
 #end
 
-@Schema(description = "${sceneEnum.name} - ${table.classComment} Response VO")
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class ${sceneEnum.prefixClass}${table.className}RespVO extends ${sceneEnum.prefixClass}${table.className}BaseVO {
+public class ${sceneEnum.prefixClass}${table.className}RespVO {
 
 #foreach ($column in $columns)
-#if (${column.listOperationResult} && (!${column.createOperation} || !${column.updateOperation}))##不是通用字段
-    @Schema(description = "${column.columnComment}"#if (!${column.nullable}), requiredMode = Schema.RequiredMode.REQUIRED#end#if ("$!column.example" != ""), example = "${column.example}"#end)
+###if (${column.listOperationResult} && (!${column.createOperation} || !${column.updateOperation}))##不是通用字段
+#if (${column.listOperationResult})##不是通用字段
+    /**
+    * ${column.columnComment}
+    */
+    #if(${column.javaType} == "LocalDateTime")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    #end
+    #if(${column.javaField} == "createUser" || ${column.javaField} == "updateUser")
+    private String ${column.javaField};
+    #else
     private ${column.javaType} ${column.javaField};
+    #end
 
 #end
 #end
